@@ -7,7 +7,8 @@ import multiprocessing as mp
 print("Number of processors: ", mp.cpu_count())
 
 video_path = "./npy/"
-matrix_path = "./"
+qmatrix_path = "./qmatrix/"
+tmatrix_path = "./tmatrix"
 
 motion_dict = {}
 
@@ -26,7 +27,7 @@ def initial_vector_matrix(s, t):
     return dtw_matrix
 
 
-def get_matrix(name: str, compared_name: str):
+def get_matrix(name: str, compared_name: str, target:int):
     if compared_name == name:
         return
 
@@ -54,8 +55,8 @@ def get_matrix(name: str, compared_name: str):
             vector = []
 
             for b in range(52):
-                current_frame_b_quaternion = quaternion[frame, b, 1]
-                current_frame_cn_b_quaternion = cn_quaternion[cn_frame, b, 1]
+                current_frame_b_quaternion = quaternion[frame, b, target]
+                current_frame_cn_b_quaternion = cn_quaternion[cn_frame, b, target]
                 delta_b_quaternion = 1.0 - math.pow(
                     np.dot(current_frame_b_quaternion, current_frame_cn_b_quaternion), 2)
                 vector.append(delta_b_quaternion)
@@ -78,6 +79,17 @@ def get_matrix(name: str, compared_name: str):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
+    # 0 for translation
+    # 1 for quaternion
+    target = 0
+
+    matrix_path = tmatrix_path
+    if target == 0:
+        matrix_path = tmatrix_path
+    else:
+        matrix_path = qmatrix_path
+
     for root, dirs, files in os.walk(video_path, topdown=True):
 
         for f in files:
@@ -102,6 +114,6 @@ if __name__ == '__main__':
 
         pool = mp.Pool(mp.cpu_count())
 
-        pair_list = pool.starmap_async(get_matrix, [(n, cn) for cn in motion_dict]).get()
+        pair_list = pool.starmap_async(get_matrix, [(n, cn, target) for cn in motion_dict]).get()
 
         pool.close()
