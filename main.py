@@ -6,7 +6,7 @@ import multiprocessing as mp
 
 print("Number of processors: ", mp.cpu_count())
 
-video_path = "./npy/"
+video_path = "npy/"
 qmatrix_path = "./qmatrix/"
 tmatrix_path = "./tmatrix"
 
@@ -27,7 +27,10 @@ def initial_vector_matrix(s, t):
     return dtw_matrix
 
 
-def get_matrix(name: str, compared_name: str, target:int):
+def get_matrix(name: str, compared_name: str, target:int, motion_dict:dict, matrix_path:str):
+
+
+
     if compared_name == name:
         return
 
@@ -57,9 +60,15 @@ def get_matrix(name: str, compared_name: str, target:int):
             for b in range(52):
                 current_frame_b_quaternion = quaternion[frame, b, target]
                 current_frame_cn_b_quaternion = cn_quaternion[cn_frame, b, target]
-                delta_b_quaternion = 1.0 - math.pow(
-                    np.dot(current_frame_b_quaternion, current_frame_cn_b_quaternion), 2)
-                vector.append(delta_b_quaternion)
+
+                if target == 0:
+                    delta = np.linalg.norm(
+                        current_frame_b_quaternion - current_frame_cn_b_quaternion).item()
+                else:
+                    delta = 1.0 - math.pow(
+                        np.dot(current_frame_b_quaternion, current_frame_cn_b_quaternion), 2)
+
+                vector.append(delta)
 
             # hip translation delta
             current_frame_hip_translation = translation[frame, 0, 0]
@@ -97,7 +106,7 @@ if __name__ == '__main__':
             if f.endswith(".npy"):
                 data = np.load(video_path + "/" + f)
                 f_we = f.split(".")[0]
-
+                # print(f_we)
                 motion_dict[f_we] = data
 
     # pool = mp.Pool(mp.cpu_count())
@@ -114,6 +123,6 @@ if __name__ == '__main__':
 
         pool = mp.Pool(mp.cpu_count())
 
-        pair_list = pool.starmap_async(get_matrix, [(n, cn, target) for cn in motion_dict]).get()
+        pair_list = pool.starmap_async(get_matrix, [(n, cn, target,motion_dict, matrix_path ) for cn in motion_dict]).get()
 
         pool.close()
