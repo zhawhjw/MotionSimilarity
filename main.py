@@ -26,7 +26,6 @@ def initial_vector_matrix(s, t):
     return dtw_matrix
 
 
-
 def get_matrix(name: str, compared_name: str):
     if compared_name == name:
         return
@@ -74,7 +73,7 @@ def get_matrix(name: str, compared_name: str):
     np.save(matrix_path + "/" + name + "/" + compared_name + ".npy", zero_matrix)
     del zero_matrix
 
-    return (name, compared_name)
+    return name, compared_name
 
 
 # Press the green button in the gutter to run the script.
